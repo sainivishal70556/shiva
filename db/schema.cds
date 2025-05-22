@@ -8,6 +8,6 @@ entity BusinessPartners : cuid, managed {
   email: String(100);
   phone: String(15);
   address: String(250); 
-  //
+  
 }
 
