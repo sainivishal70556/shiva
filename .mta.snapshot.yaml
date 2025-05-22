@@ -1,0 +1,221 @@
+_schema-version: '3.1'
+ID: shiva
+version: 1.0.0
+description: A simple CAP project.
+parameters:
+  deploy_mode: html5-repo
+  enable-parallel-deployments: true
+  subdomain: 4842a2f8trial
+build-parameters:
+  before-all:
+    - builder: custom
+      commands:
+        - rm -rf build/dist
+        - mkdir -p build/dist
+        - rm -rf build/ui-deployer
+        - mkdir -p build/ui-deployer
+    - builder: custom
+      commands:
+        - npm install --production
+        - >-
+          bash -c "cds -v | grep 'cds-dk' || npm i --production --no-save
+          @sap/cds-dk"
+        - bash -c "export PATH=$PATH:$(pwd)/node_modules/.bin"
+        - cds build --production
+  after-all:
+    - builder: custom
+      commands:
+        - npm install
+modules:
+  - name: shiva-shiva.myapplication
+    type: html5
+    path: app/shiva.myapplication
+    build-parameters:
+      builder: custom
+      commands:
+        - rm -rf dist-zip dist
+        - npm install
+        - >-
+          npx -p @ui5/cli@^3.0.0 ui5 build --dest dist
+          --include-task=generateCachebusterInfo
+        - mkdir dist-zip
+        - bash -c "cd dist && npx bestzip ../dist-zip/shivamyapplication.zip *"
+      _artifactName: shivamyapplication.zip
+      supported-platforms: []
+      build-result: dist-zip
+  - name: shiva-db-deployer
+    type: hdb
+    path: gen/db
+    parameters:
+      buildpack: nodejs_buildpack
+    build-parameters:
+      builder: npm
+      ignore:
+        - node_modules
+        - package-lock.json
+    requires:
+      - name: shiva-service-uaa
+      - name: shiva-service-db
+  - name: shiva-srv
+    type: nodejs
+    path: gen/srv
+    parameters:
+      memory: 256MB
+    provides:
+      - name: srv-api
+        properties:
+          srv-url: ${default-url}
+    build-parameters:
+      builder: npm
+      ignore:
+        - node_modules
+        - package-lock.json
+    requires:
+      - name: shiva-service-uaa
+      - name: shiva-service-db
+      - name: shiva-service-destination
+      - name: shiva-service-metadata
+      - name: shiva-service-connectivity
+      - name: shiva-service-logs
+  - name: shiva-aux-destinations
+    type: com.sap.application.content
+    parameters:
+      content:
+        subaccount:
+          existing_destinations_policy: update
+          destinations:
+            - Authentication: OAuth2UserTokenExchange
+              Name: shiva-service-uaa
+              ServiceInstanceName: shiva-uaa
+              ServiceKeyName: shiva-uaa-key
+              sap.cloud.service: lcap.shiva
+            - Authentication: OAuth2UserTokenExchange
+              Name: shiva-app-srv
+              TokenServiceInstanceName: shiva-uaa
+              TokenServiceKeyName: shiva-uaa-key
+              URL: ~{srv-api/srv-url}
+              sap.cloud.service: lcap.shiva
+            - Name: shiva-service-html5-apps-repo-host
+              ServiceInstanceName: shiva-html5-apps-repo-host
+              ServiceKeyName: shiva-html5-apps-repo-host-key
+              sap.cloud.service: lcap.shiva
+            - Authentication: OAuth2UserTokenExchange
+              Name: shiva-shivaSrv
+              TokenServiceInstanceName: shiva-uaa
+              TokenServiceKeyName: shiva-uaa-key
+              URL: ~{srv-api/srv-url}/service/shiva
+              sap.cloud.service: lcap.shiva
+              sap.applicationdevelopment.actions.enabled: false
+              sap.build.usage: CAP
+              sap.processautomation.enabled: false
+              HTML5.DynamicDestination: false
+              WebIDEEnabled: false
+              MobileEnabled: false
+              AppgyverEnabled: false
+    build-parameters:
+      no-source: true
+    requires:
+      - name: shiva-service-uaa
+        parameters:
+          service-key:
+            name: shiva-uaa-key
+      - name: srv-api
+      - name: shiva-service-html5-apps-repo-host
+        parameters:
+          service-key:
+            name: shiva-html5-apps-repo-host-key
+      - name: shiva-service-destination
+        parameters:
+          content-target: true
+  - name: shiva-launchpad
+    type: html5
+    path: build/launchpad
+    build-parameters:
+      builder: custom
+      commands:
+        - npm install
+        - >-
+          npx -p @ui5/cli@^3.0.0 ui5 build --dest dist
+          --include-task=generateCachebusterInfo
+        - bash -c "cd dist && npx bestzip ../../../build/dist/launchpad.zip *"
+        - rm -rf dist
+      _artifactName: launchpad.zip
+      supported-platforms: []
+      build-result: ../../build/dist
+  - name: shiva-aux-ui-deployer
+    type: com.sap.application.content
+    path: build/ui-deployer
+    build-parameters:
+      build-result: resources
+      requires:
+        - name: shiva-shiva.myapplication
+          artifacts:
+            - shivamyapplication.zip
+          target-path: resources
+        - name: shiva-launchpad
+          artifacts:
+            - launchpad.zip
+          target-path: resources
+    requires:
+      - name: shiva-service-html5-apps-repo-host
+        parameters:
+          content-target: true
+resources:
+  - type: org.cloudfoundry.managed-service
+    name: shiva-service-uaa
+    parameters:
+      service: xsuaa
+      service-plan: application
+      service-name: shiva-uaa
+      path: xs-security.json
+      config:
+        oauth2-configuration:
+          redirect-uris:
+            - https://${subdomain}.launchpad.${default-domain}/login/*
+            - https://${subdomain}.${default-domain}/login/*
+          credential-types:
+            - binding-secret
+            - x509
+        xsappname: shiva-${space}
+        role-collections: []
+  - type: org.cloudfoundry.managed-service
+    name: shiva-service-db
+    parameters:
+      service: hana
+      service-plan: hdi-shared
+      service-name: shiva-db
+  - type: org.cloudfoundry.managed-service
+    name: shiva-service-destination
+    parameters:
+      service: destination
+      service-plan: lite
+      service-name: shiva-destination
+      config:
+        HTML5Runtime_enabled: true
+        version: 1.0.0
+  - type: org.cloudfoundry.user-provided-service
+    name: shiva-service-metadata
+    parameters:
+      service: metadata
+      service-plan: standard
+      service-name: shiva-metadata
+      config:
+        default-domain: ${default-domain}
+  - type: org.cloudfoundry.managed-service
+    name: shiva-service-connectivity
+    parameters:
+      service: connectivity
+      service-plan: lite
+      service-name: shiva-connectivity
+  - type: org.cloudfoundry.managed-service
+    name: shiva-service-logs
+    parameters:
+      service: application-logs
+      service-plan: lite
+      service-name: shiva-logs
+  - type: org.cloudfoundry.managed-service
+    name: shiva-service-html5-apps-repo-host
+    parameters:
+      service: html5-apps-repo
+      service-plan: app-host
+      service-name: shiva-html5-apps-repo-host

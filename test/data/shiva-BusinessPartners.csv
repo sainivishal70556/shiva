@@ -1,0 +1,6 @@
+ID;businessPartnersID;name;email;phone;address;createdAt;createdBy;modifiedAt;modifiedBy
+a6e742c6-3991-4430-bd26-492a9feb4db8;BP001;John Doe;john.doe@example.com;1234567890;123 Elm St, Springfield, IL;2021-06-27T14:52:23Z;admin;2021-06-27T14:52:23Z;admin
+6db85bee-d118-45e3-bed9-f90b035025dd;BP002;Jane Smith;jane.smith@example.com;0987654321;456 Oak St, Springfield, IL;2021-06-27T14:52:23Z;admin;2021-06-27T14:52:23Z;admin
+5cdc8488-e947-40f3-9f56-3f57fef8fb53;BP003;Michael Johnson;michael.j@example.com;1231231234;789 Pine St, Springfield, IL;2021-06-27T14:52:23Z;admin;2021-06-27T14:52:23Z;admin
+cf473e27-e5b7-43fd-8fba-049789fb71c4;BP004;Emily Davis;emily.davis@example.com;3213214321;321 Maple St, Springfield, IL;2021-06-27T14:52:23Z;admin;2021-06-27T14:52:23Z;admin
+3f5d9b7d-49fc-469a-93e0-16940130c3fc;BP005;David Wilson;david.wilson@example.com;4564564567;654 Cedar St, Springfield, IL;2021-06-27T14:52:23Z;admin;2021-06-27T14:52:23Z;admin

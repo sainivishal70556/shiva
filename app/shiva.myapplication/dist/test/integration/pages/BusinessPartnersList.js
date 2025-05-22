@@ -1,0 +1,2 @@
+sap.ui.define(["sap/fe/test/ListReport"],function(s){"use strict";var t={actions:{},assertions:{}};return new s({appId:"shiva.myapplication",componentId:"BusinessPartnersList",contextPath:"/BusinessPartners"},t)});
+//# sourceMappingURL=BusinessPartnersList.js.map

@@ -1,0 +1,2 @@
+sap.ui.require(["sap/fe/test/JourneyRunner","shiva/myapplication/test/integration/FirstJourney","shiva/myapplication/test/integration/pages/BusinessPartnersList","shiva/myapplication/test/integration/pages/BusinessPartnersObjectPage"],function(e,s,i,t){"use strict";var e=new e({launchUrl:sap.ui.require.toUrl("shiva/myapplication")+"/index.html"});e.run({pages:{onTheBusinessPartnersList:i,onTheBusinessPartnersObjectPage:t}},s.run)});
+//# sourceMappingURL=opaTests.qunit.js.map

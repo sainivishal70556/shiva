@@ -1,0 +1,1 @@
+using shivaSrv as service from '../../srv/service';

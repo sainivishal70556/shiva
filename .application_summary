@@ -1,0 +1,5 @@
+{
+  "ProjectOverviewURL": "https://4842a2f8trial.launchpad.cfapps.us10.hana.ondemand.com/lcapshiva.shivaLaunchpad-1.0.0/",
+  "DeployedUTCTime": "2025-05-17T20:30:56.690Z",
+  "ApplicationLogURL": "https://logs.cf.us10-001.hana.ondemand.com/app/dashboards#/view/Overview?_g=(filters:!((query:(match_phrase:(component_name:shiva-srv)))))"
+}
